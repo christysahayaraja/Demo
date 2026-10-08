@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Better Than Yesterday · Activity Tracker</title>
+  <meta name="description" content="Track your daily habits, earn XP, level up and build streaks." />
+  <link rel="icon" href="assets/favicon.png" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="shell">
+  <header class="app-header">
+    <div class="brand"><img src="assets/favicon.png" alt="" /><div><strong>Better Than Yesterday</strong><small>ACTIVITY TRACKER</small></div></div>
+    <div class="header-actions">
+      <span class="sync" id="sync" hidden></span>
+      <button class="btn ghost" id="btn-cloud" hidden>☁ Sign in</button>
+      <button class="btn ghost" id="btn-notify" title="Enable reminders">🔔 Reminders</button>
+      <button class="btn ghost" id="btn-export">⬇ Export</button>
+      <label class="btn ghost" for="import-file">⬆ Import</label>
+      <input type="file" id="import-file" accept="application/json" hidden />
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="panel banner">
+      <div class="banner-copy">
+        <p class="label" id="b-day">HUNTER STATUS</p>
+        <h1>Rise, <span class="neon" id="b-name">Hunter</span>.</h1>
+        <p class="muted">Don't become perfect. Become better than yesterday.</p>
+        <div class="clock"><strong id="clock-time">--:--:--</strong><span id="clock-date"></span></div>
+      </div>
+      <div class="level-core"><small>LEVEL</small><strong id="lvl">01</strong></div>
+      <div class="level-progress">
+        <div class="row"><span class="label">NEXT LEVEL</span><b id="lvl-next">0 points</b></div>
+        <div class="track"><span id="lvl-bar"></span></div>
+        <p class="muted small" id="lvl-text"></p>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="panel stat"><span class="label">TODAY</span><strong id="s-today">0%</strong><small id="s-today-sub">0 / 0 quests</small></div>
+      <div class="panel stat"><span class="label">🔥 STREAK</span><strong id="s-streak">0</strong><small id="s-longest">Longest: 0</small></div>
+      <div class="panel stat"><span class="label">⭐ TOTAL SCORE</span><strong id="s-score">0</strong><small>10 points per completed quest</small></div>
+      <div class="panel stat"><span class="label">🏆 ACHIEVEMENTS</span><strong id="s-ach">0/5</strong><small>unlocked</small></div>
+    </section>
+
+    <section class="panel">
+      <div class="heading">
+        <div><p class="label">DAILY QUESTS</p><h2>Today's checklist</h2></div>
+        <button class="btn neon-btn" id="btn-add">＋ New quest</button>
+      </div>
+      <div class="filters" id="filters"></div>
+      <ul class="habit-list" id="habit-list"></ul>
+      <p class="empty" id="habit-empty" hidden>No quests yet. Add your first one!</p>
+    </section>
+
+    <section class="two-col">
+      <section class="panel">
+        <div class="heading"><div><p class="label">ANALYTICS</p><h2>Last 14 days</h2></div></div>
+        <canvas id="chart-trend" height="200"></canvas>
+      </section>
+      <section class="panel">
+        <div class="heading"><div><p class="label">ANALYTICS</p><h2>This month by quest</h2></div></div>
+        <div id="chart-rank" class="rank"></div>
+      </section>
+    </section>
+
+    <section class="panel">
+      <div class="heading"><div><p class="label">ACHIEVEMENTS</p><h2>Badges</h2></div></div>
+      <div class="ach-grid" id="ach"></div>
+    </section>
+
+    <section class="panel">
+      <div class="heading">
+        <div><p class="label">HISTORY ARCHIVE</p><h2 id="month-title">Month</h2></div>
+        <span class="muted small">🔒 Previous days are locked</span>
+      </div>
+      <div class="table-wrap"><table class="history" id="history"></table></div>
+    </section>
+  </main>
+  <footer class="footer" id="footer">Data is saved in your browser (localStorage). Use Export to back it up.</footer>
+</div>
+
+<!-- Quest dialog -->
+<dialog id="dlg-habit">
+  <form method="dialog" id="habit-form" class="dlg">
+    <h3 id="dlg-title">New quest</h3>
+    <label>Name<input class="field" name="name" required maxlength="120" placeholder="e.g. Read 30 minutes" /></label>
+    <div class="grid2">
+      <label>Emoji<input class="field" name="emoji" required maxlength="8" value="✅" /></label>
+      <label>Category<input class="field" name="category" required maxlength="60" value="General" /></label>
+    </div>
+    <div class="grid2">
+      <label>Target<input class="field" name="target_value" type="number" min="0.1" step="any" value="1" required /></label>
+      <label>Unit<input class="field" name="target_unit" required maxlength="40" value="time" /></label>
+    </div>
+    <div class="grid2">
+      <label>Priority<select class="field" name="priority"><option>low</option><option selected>medium</option><option>high</option></select></label>
+      <label>Difficulty<select class="field" name="difficulty"><option>easy</option><option selected>medium</option><option>hard</option></select></label>
+    </div>
+    <div class="grid2">
+      <label>Colour<select class="field" name="color"><option>cyan</option><option>purple</option><option>emerald</option><option>orange</option><option>pink</option></select></label>
+      <label>Reminder time<input class="field" name="reminder_time" type="time" /></label>
+    </div>
+    <label class="check"><input type="checkbox" name="reminder_enabled" /> Enable daily reminder</label>
+    <div class="dlg-actions">
+      <button type="button" class="btn ghost" id="dlg-cancel">Cancel</button>
+      <button type="submit" class="btn neon-btn">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Profile dialog -->
+<dialog id="dlg-name">
+  <form method="dialog" class="dlg" id="name-form">
+    <h3>Welcome, Hunter</h3>
+    <label>What should we call you?<input class="field" name="name" required maxlength="40" placeholder="Your name" /></label>
+    <div class="dlg-actions"><button class="btn neon-btn" type="submit">Start</button></div>
+  </form>
+</dialog>
+
+<!-- Auth dialog (only used when Supabase is configured) -->
+<dialog id="dlg-auth">
+  <form class="dlg" id="auth-form" autocomplete="on">
+    <h3>Better Than Yesterday</h3>
+    <div class="tabs"><button type="button" class="chip on" data-auth-mode="login">Log in</button><button type="button" class="chip" data-auth-mode="register">Create account</button></div>
+    <label data-only="register">Full name<input class="field" name="fullName" maxlength="80" autocomplete="name" /></label>
+    <label>User ID<input class="field" name="userId" required minlength="3" maxlength="32" pattern="[a-zA-Z0-9_.\-]{3,32}" autocomplete="username" placeholder="e.g. arjun_01" /></label>
+    <label>Password<input class="field" name="password" type="password" required minlength="8" maxlength="72" autocomplete="current-password" /></label>
+    <label data-only="register">Confirm password<input class="field" name="confirm" type="password" minlength="8" maxlength="72" autocomplete="new-password" /></label>
+    <p class="error" id="auth-error" hidden></p>
+    <div class="dlg-actions">
+      <button type="button" class="btn ghost" id="auth-offline">Continue offline</button>
+      <button type="submit" class="btn neon-btn" id="auth-submit">Log in</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status"></div>
+<div class="burst" id="burst" hidden>QUEST COMPLETE ✦</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase/config.js"></script>
+<script src="supabase/client.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
